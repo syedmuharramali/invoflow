@@ -1,121 +1,39 @@
-const Invoice = require('../models/Invoice');
+const express = require('express');
+const router = express.Router();
+const {
+  createInvoice,
+  getInvoices,
+  getInvoice,
+  updateInvoice,
+  deleteInvoice
+} = require('../controllers/user.controller.js');
+const auth = require('../middleware/user.middleware.js');
+const generateInvoicePDF = require('../utils/pdfGenerator.js');
+const User = require('../models/user.model.js');
+const Invoice = require('../models/invoice.model.js');
 
-const generateInvoiceNumber = async () => {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  
-  const lastInvoice = await Invoice.findOne({
-    invoiceNumber: new RegExp(`^INV-${year}${month}-`)
-  }).sort({ invoiceNumber: -1 });
-  
-  let sequence = '001';
-  if (lastInvoice) {
-    const lastSeq = parseInt(lastInvoice.invoiceNumber.split('-')[2]);
-    sequence = String(lastSeq + 1).padStart(3, '0');
-  }
-  
-  return `INV-${year}${month}-${sequence}`;
-};
+router.use(auth);
 
-exports.createInvoice = async (req, res) => {
-  try {
-    const invoiceNumber = await generateInvoiceNumber();
-    
-    const invoice = new Invoice({
-      ...req.body,
-      user: req.user.id,
-      invoiceNumber
-    });
-    
-    if (invoice.items && invoice.items.length > 0) {
-      let subtotal = 0;
-      invoice.items.forEach(item => {
-        item.amount = item.quantity * item.rate;
-        subtotal += item.amount;
-      });
-      invoice.subtotal = subtotal;
-      invoice.taxAmount = subtotal * (invoice.taxRate / 100);
-      invoice.total = subtotal + invoice.taxAmount;
-    }
-    
-    await invoice.save();
-    res.status(201).json(invoice);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
+router.route('/').get(getInvoices).post(createInvoice);
+router.route('/:id').get(getInvoice).put(updateInvoice).delete(deleteInvoice);
 
-exports.getInvoices = async (req, res) => {
-  try {
-    const invoices = await Invoice.find({ user: req.user.id }).sort({ createdAt: -1 });
-    res.json(invoices);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
-
-exports.getInvoice = async (req, res) => {
+// PDF Route
+router.get('/:id/pdf', auth, async (req, res) => {
   try {
     const invoice = await Invoice.findById(req.params.id);
-    
     if (!invoice) return res.status(404).json({ msg: 'Invoice not found' });
     if (invoice.user.toString() !== req.user.id) return res.status(401).json({ msg: 'Not authorized' });
     
-    res.json(invoice);
+    const user = await User.findById(req.user.id).select('-password');
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=invoice-${invoice.invoiceNumber}.pdf`);
+    
+    generateInvoicePDF(invoice, user, res);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
-};
+});
 
-exports.updateInvoice = async (req, res) => {
-  try {
-    let invoice = await Invoice.findById(req.params.id);
-    
-    if (!invoice) return res.status(404).json({ msg: 'Invoice not found' });
-    if (invoice.user.toString() !== req.user.id) return res.status(401).json({ msg: 'Not authorized' });
-    
-    const updates = req.body;
-    
-    if (updates.items) {
-      let subtotal = 0;
-      updates.items.forEach(item => {
-        item.amount = item.quantity * item.rate;
-        subtotal += item.amount;
-      });
-      updates.subtotal = subtotal;
-      const taxRate = updates.taxRate !== undefined ? updates.taxRate : invoice.taxRate;
-      updates.taxAmount = subtotal * (taxRate / 100);
-      updates.total = subtotal + updates.taxAmount;
-    }
-    
-    invoice = await Invoice.findByIdAndUpdate(
-      req.params.id,
-      { $set: updates },
-      { new: true, runValidators: true }
-    );
-    
-    res.json(invoice);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
-
-exports.deleteInvoice = async (req, res) => {
-  try {
-    const invoice = await Invoice.findById(req.params.id);
-    
-    if (!invoice) return res.status(404).json({ msg: 'Invoice not found' });
-    if (invoice.user.toString() !== req.user.id) return res.status(401).json({ msg: 'Not authorized' });
-    
-    await invoice.deleteOne();
-    res.json({ msg: 'Invoice removed' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
+module.exports = router;

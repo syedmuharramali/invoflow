@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 const userRouter=require("./routes/user.route.js");
-
+const invoiceRouter=require("./routes/invoice.route.js")
 
 
 // MongoDB Connection
@@ -25,6 +25,7 @@ app.get('/', (req, res) => {
   res.send('InvoFlow API is running...');
 });
 app.use("/api/auth",userRouter);
+app.use("/api/invoices",invoiceRouter)
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
