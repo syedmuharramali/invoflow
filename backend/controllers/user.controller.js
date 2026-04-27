@@ -3,6 +3,18 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => {
+  if(!req.body.name){
+    return res.status(400).json({message:"Name is required"})
+  }
+  if(!req.body.email){
+    return res.status(400).json({message:"Email is required"})
+  }
+  if(!req.body.password){
+   return res.status(400).json({message:"Password is required"})
+  }
+  if(!req.body.businessName){
+    return res.status(400).json({message:"BusinessName is required"})
+  }
   const { name, email, password, businessName } = req.body;
 
   try {
@@ -27,12 +39,15 @@ exports.register = async (req, res) => {
       }
     );
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    
+    res.status(500).json({message:'Something went wrong'});
   }
 };
 
 exports.login = async (req, res) => {
+  if(!(email||password)){
+    return res.status(400).json({message:"Email or password is required"})
+  }
   const { email, password } = req.body;
 
   try {
