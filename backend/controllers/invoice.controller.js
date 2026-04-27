@@ -43,17 +43,17 @@ exports.createInvoice = async (req, res) => {
     res.status(201).json(invoice);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).json({msg:'Server error'});
   }
 };
 
 exports.getInvoices = async (req, res) => {
   try {
     const invoices = await Invoice.find({ user: req.user.id }).sort({ createdAt: -1 });
-    res.json(invoices);
+    res.status(200).json(invoices);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).json({msg:'Server error'});
   }
 };
 
@@ -64,10 +64,10 @@ exports.getInvoice = async (req, res) => {
     if (!invoice) return res.status(404).json({ msg: 'Invoice not found' });
     if (invoice.user.toString() !== req.user.id) return res.status(401).json({ msg: 'Not authorized' });
     
-    res.json(invoice);
+    res.status(200).json(invoice);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).json({msg:'Server error'});
   }
 };
 
@@ -98,10 +98,10 @@ exports.updateInvoice = async (req, res) => {
       { new: true, runValidators: true }
     );
     
-    res.json(invoice);
+    res.status(200).json(invoice);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).json({msg:'Server error'});
   }
 };
 
@@ -113,9 +113,9 @@ exports.deleteInvoice = async (req, res) => {
     if (invoice.user.toString() !== req.user.id) return res.status(401).json({ msg: 'Not authorized' });
     
     await invoice.deleteOne();
-    res.json({ msg: 'Invoice removed' });
+    res.status(200).json({ msg: 'Invoice removed' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).json({msg:'Server error'});
   }
 };

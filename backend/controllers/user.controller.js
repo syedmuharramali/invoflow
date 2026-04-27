@@ -35,12 +35,12 @@ exports.register = async (req, res) => {
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        res.status(201).json({ token });
       }
     );
   } catch (err) {
     
-    res.status(500).json({message:'Something went wrong'});
+    res.status(500).json({msg:'Something went wrong'});
   }
 };
 
@@ -66,21 +66,21 @@ exports.login = async (req, res) => {
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        res.status(200).json({ token });
       }
     );
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).json({msg:"Server error"});
   }
 };
 
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-    res.json(user);
+    res.status(200).json(user);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send({msg:'Server error'});
   }
 };
