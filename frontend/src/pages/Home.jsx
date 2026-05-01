@@ -40,10 +40,10 @@ const Home = () => {
                     </Link>
                   ) : (
                     <>
-                      <Link to="/register" className="btn-primary !bg-white !text-indigo-600 !px-8 !py-4 text-lg">
+                      <Link to="/register" className="btn-primary rounded hover:opacity-50 !bg-white !text-indigo-600 !px-8 !py-4 text-lg">
                         Get Started Free
                       </Link>
-                      <Link to="/login" className="btn-secondary !border-white !text-white !px-8 !py-4 text-lg">
+                      <Link to="/login" className="btn-secondary bg-indigo-600 border hover:opacity-50 rounded !text-white !px-8 !py-4 text-lg">
                         Sign In
                       </Link>
                     </>
@@ -98,7 +98,7 @@ const Home = () => {
         </section>
 
         {/* How It Works */}
-        <section className="section-padding bg-gray-50">
+        <section className="section-padding px-4 py-4 bg-gray-50">
           <div className="container-custom mx-auto px-4">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
@@ -130,7 +130,7 @@ const Home = () => {
             <h2 className="text-4xl font-bold mb-4">Ready to Streamline Your Invoicing?</h2>
             <p className="text-xl text-indigo-200 mb-8">Join thousands of freelancers and small businesses using {APP_NAME}.</p>
             {!user && (
-              <Link to="/register" className="btn-primary !bg-white !text-indigo-600 !px-10 !py-4 text-lg">
+              <Link to="/register" className="btn-primary !bg-white !text-indigo-600 !px-10 !py-4 rounded hover:opacity-50 text-lg">
                 Get Started Free
               </Link>
             )}
